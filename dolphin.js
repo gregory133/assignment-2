@@ -10,6 +10,8 @@ const aspectRatio = canvas.offsetWidth / canvas.offsetHeight
 const camera = new THREE.PerspectiveCamera(45, aspectRatio, 1, 1000)
 const scene = new THREE.Scene()
 
+let dolphinSkinnedMesh
+
 //adds controls for scene
 const controls = new OrbitControls(camera, renderer.domElement);
 
@@ -38,6 +40,56 @@ function optionalInit(){
  
 }
 
+/**assigns skinIndices and skinWeights to each vertex of the mesh */
+function skinMesh(geometry){
+
+    const skinIndices = []
+    const skinWeights = []
+
+    let dict = new Map()
+
+    const vertexColor = new THREE.Vector3()
+    for (let i = 0; i < geometry.attributes.color.count; i++){
+        vertexColor.fromBufferAttribute(geometry.attributes.color, i)
+
+        // console.log(vertexColor)
+
+        //assign dark green vertices to head bone
+        if (vertexColor.x == 0.009134110994637012 && vertexColor.y == 0.06480329483747482 && vertexColor.z == 0){
+            skinIndices.push(0, 0, 0, 0)
+            skinWeights.push(1, 0, 0, 0)
+        }
+        //assign light green vertices to tail fin bone
+        else if (vertexColor.x == 0 && vertexColor.y == 1 && vertexColor.z == 0){
+            skinIndices.push(4, 0, 0, 0)
+            skinWeights.push(1, 0, 0, 0)
+        }
+        //assign yellow vertices to dorsal fin bone
+        else if (vertexColor.x == 1 && vertexColor.y == 1 && vertexColor.z == 0){
+            skinIndices.push(5, 0, 0, 0)
+            skinWeights.push(1, 0, 0, 0)
+        }    
+        //assign turquoise vertices to left flipper bone
+        else if (vertexColor.x == 0 && vertexColor.y == 0.5209961533546448 && vertexColor.z == 0.5209961533546448){
+            skinIndices.push(6, 0, 0, 0)
+            skinWeights.push(1, 0, 0, 0)
+        }
+        //assign pink vertices to right flipper bone
+        else if (vertexColor.x == 0.5209961533546448 && vertexColor.y == 0 && vertexColor.z == 0.5209961533546448){
+            skinIndices.push(7, 0, 0, 0)
+            skinWeights.push(1, 0, 0, 0)
+        }
+        else{
+            skinIndices.push(0, 0, 0, 0)
+            skinWeights.push(1, 0, 0, 0)
+        }
+    }
+
+    geometry.setAttribute('skinIndex', new THREE.Uint16BufferAttribute(skinIndices, 4))
+    geometry.setAttribute('skinWeight', new THREE.Float32BufferAttribute(skinWeights, 4))
+
+}
+
 /**this function adds the objects to the scene */
 function addObjects(){
 
@@ -47,14 +99,20 @@ function addObjects(){
         function(obj){
 
             const dolphinGeometry = obj.children[0].geometry
+            skinMesh(dolphinGeometry)
             const dolphinSkeleton = createBones()
-            const material = new THREE.MeshBasicMaterial({color: 0x808080, wireframe: false})
+            // console.log(dolphinSkeleton)
+            
+            const material = obj.children[0].material
+            // const material = new THREE.MeshStandardMaterial({color: 'white', wireframe: true})
 
-            const dolphinSkinnedMesh = new THREE.SkinnedMesh(dolphinGeometry, material)
+            dolphinSkinnedMesh = new THREE.SkinnedMesh(dolphinGeometry, material)
             const rootBone = dolphinSkeleton.bones[0]
 
             dolphinSkinnedMesh.add(rootBone)
             dolphinSkinnedMesh.bind(dolphinSkeleton)
+
+            // console.log(dolphinSkinnedMesh.skeleton.bones[8]) 
 
             const dolphinSkeletonHelper = new THREE.SkeletonHelper(dolphinSkinnedMesh)
             scene.add(dolphinSkeletonHelper)
@@ -129,12 +187,25 @@ function createBones(){
     return dolphinSkeleton
 }
 
+/**this function is called every render frame and contains the logic that rotates and bones to give
+ * the required animation
+ */
+function animateDolphin(){
 
+    if (dolphinSkinnedMesh){
+        dolphinSkinnedMesh.skeleton.bones[3].rotateY(Math.sin(Date.now() * 0.01) * 0.01)
+    }
+    
+
+}
 
 /**render function that contains the render loop*/
 function render(){
 
     function renderLoop(){
+
+        animateDolphin()
+        
         
         requestAnimationFrame(renderLoop)
         controls.update()
