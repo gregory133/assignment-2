@@ -33,8 +33,8 @@ function init(){
 function optionalInit(){
 
     //adds axes to scene
-    const axesHelper = new THREE.AxesHelper(50)
-    scene.add(axesHelper)
+    // const axesHelper = new THREE.AxesHelper(50)
+    // scene.add(axesHelper)
  
 }
 
@@ -45,19 +45,35 @@ function addObjects(){
     const loader = new OBJLoader()
     loader.load('dolphin_color.obj',
         function(obj){
-            obj.traverse(function(child){
-                if (child instanceof THREE.Mesh) {
-                    child.material = new THREE.MeshStandardMaterial({color: 0x808080})
-                }
-            });
+
+            const dolphinGeometry = obj.children[0].geometry
+            const dolphinSkeleton = createBones()
+            const material = new THREE.MeshBasicMaterial({color: 0x808080, wireframe: false})
+
+            const dolphinSkinnedMesh = new THREE.SkinnedMesh(dolphinGeometry, material)
+            const rootBone = dolphinSkeleton.bones[0]
+
+            dolphinSkinnedMesh.add(rootBone)
+            dolphinSkinnedMesh.bind(dolphinSkeleton)
+
+            const dolphinSkeletonHelper = new THREE.SkeletonHelper(dolphinSkinnedMesh)
+            scene.add(dolphinSkeletonHelper)
+
+            dolphinSkinnedMesh.rotateZ(Math.PI)
+            dolphinSkinnedMesh.rotateX(Math.PI/2)
+
+            const dolphinAxes = new THREE.AxesHelper(20)
+            dolphinSkinnedMesh.add(dolphinAxes)
+
             obj.rotateZ(Math.PI)
             obj.rotateX(Math.PI/2)
-            scene.add(obj);
+            // scene.add(obj)
+            scene.add(dolphinSkinnedMesh)
         },
         function(xhr){
         },
         function(err){
-            console.error("Error loading dolphin")
+            console.error("Error loading dolphin", err)
         }
     )
 
@@ -68,6 +84,49 @@ function addObjects(){
     const ambientLight = new THREE.AmbientLight(0xC1C1C1); // Soft white light
     scene.add(ambientLight);
 
+}
+
+/**creates the dolphin skeleton and returns a THREE.Skeleton object */
+function createBones(){
+
+    const headBone = new THREE.Bone()
+    headBone.position.set(-27, 0, -10)
+
+    const spineBones = []
+    spineBones.push(new THREE.Bone())
+    spineBones.push(new THREE.Bone())
+    spineBones.push(new THREE.Bone())
+
+    headBone.add(spineBones[0])
+    spineBones[0].position.set(12, 0, 5)
+    spineBones[0].add(spineBones[1])
+    spineBones[1].position.set(13, 0, 9)
+    spineBones[1].add(spineBones[2])
+    spineBones[2].position.set(23, 0, -8)
+
+    const tailFinBone = new THREE.Bone()
+    spineBones[2].add(tailFinBone)
+    tailFinBone.position.set(7, 0, -3)
+
+    const dorsalFinBone = new THREE.Bone()
+    spineBones[1].add(dorsalFinBone)
+    dorsalFinBone.position.set(8, 0, 6)
+
+    const flipperLeftBone = new THREE.Bone()
+    spineBones[0].add(flipperLeftBone)
+    flipperLeftBone.position.set(7, -8, -3)
+
+    const flipperRightBone = new THREE.Bone()
+    spineBones[0].add(flipperRightBone)
+    flipperRightBone.position.set(7, 8, -3)
+
+    const dolphinBones = [
+        headBone, ...spineBones, tailFinBone, dorsalFinBone, flipperLeftBone, flipperRightBone
+    ]
+
+    const dolphinSkeleton = new THREE.Skeleton(dolphinBones)
+
+    return dolphinSkeleton
 }
 
 
