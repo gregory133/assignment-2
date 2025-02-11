@@ -168,15 +168,15 @@ function createBones(){
 
     const dorsalFinBone = new THREE.Bone()
     spineBones[1].add(dorsalFinBone)
-    dorsalFinBone.position.set(8, 0, 6)
+    dorsalFinBone.position.set(0, 0, 1)
 
     const flipperLeftBone = new THREE.Bone()
     spineBones[0].add(flipperLeftBone)
-    flipperLeftBone.position.set(7, -8, -3)
+    flipperLeftBone.position.set(2, 3, 0)
 
     const flipperRightBone = new THREE.Bone()
     spineBones[0].add(flipperRightBone)
-    flipperRightBone.position.set(7, 8, -3)
+    flipperRightBone.position.set(2, -3, 0)
 
     const dolphinBones = [
         headBone, ...spineBones, tailFinBone, dorsalFinBone, flipperLeftBone, flipperRightBone
@@ -193,7 +193,16 @@ function createBones(){
 function animateDolphin(){
 
     if (dolphinSkinnedMesh){
+
+        //animate tail
         dolphinSkinnedMesh.skeleton.bones[3].rotateY(Math.sin(Date.now() * 0.01) * 0.01)
+
+        //animate dorsal fin
+        dolphinSkinnedMesh.skeleton.bones[5].rotateX((Math.sin(Date.now() * 0.01) * 0.01))
+
+        //animate flippers
+        dolphinSkinnedMesh.skeleton.bones[6].rotateX(-Math.sin(Date.now() * 0.01) * 0.01)
+        dolphinSkinnedMesh.skeleton.bones[7].rotateX(Math.sin(Date.now() * 0.01) * 0.01)
     }
     
 
