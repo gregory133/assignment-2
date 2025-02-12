@@ -11,9 +11,10 @@ const camera = new THREE.PerspectiveCamera(45, aspectRatio, 1, 1000)
 const scene = new THREE.Scene()
 
 let dolphinSkinnedMesh
+let controls
 
 //adds controls for scene
-const controls = new OrbitControls(camera, renderer.domElement);
+const orbitControls = new OrbitControls(camera, renderer.domElement);
 
 main()
 
@@ -59,9 +60,6 @@ function skinMesh(geometry, skeleton){
     skeleton.bones[2].getWorldPosition(spineBonesPositions[1])
     skeleton.bones[3].getWorldPosition(spineBonesPositions[2])
 
-    console.log(spineBonesPositions)
-
-
     for (let i = 0; i < geometry.attributes.color.count; i++){
         vertexColor.fromBufferAttribute(geometry.attributes.color, i)
 
@@ -76,17 +74,14 @@ function skinMesh(geometry, skeleton){
             const distances = spineBonesPositions.map(spineBonesPosition=>spineBonesPosition.distanceTo(vertexPos))
            
             if ((distances[0] < distances[1]) && (distances[0] < distances[2])){
-                console.log('assigned 1')
                 skinIndices.push(1, 0, 0, 0)
                 skinWeights.push(1, 0, 0, 0)
             }
             else if (distances[1] < distances[2]){
-                console.log('assigned 2')
                 skinIndices.push(2, 0, 0, 0)
                 skinWeights.push(1, 0, 0, 0)
             }
             else{
-                console.log('assigned 3')
                 skinIndices.push(3, 0, 0, 0)
                 skinWeights.push(1, 0, 0, 0)
             }
@@ -123,6 +118,34 @@ function skinMesh(geometry, skeleton){
 
 }
 
+function initGUI(skeleton){
+    const gui = new GUI()
+
+    controls = new (function(){
+        this.dorsalFinSpeed = 1
+        this.tailFinSpeed = 1
+        this.leftFlipperVerticalSpeed = 1
+        this.leftFlipperHorizontalSpeed = 1
+        this.rightFlipperVerticalSpeed = 1
+        this.rightFlipperHorizontalSpeed = 1
+        this.spine0Speed = 1
+        this.spine1Speed = 1
+        this.spine2Speed = 1
+        this.redraw = ()=>{
+        }
+    })()
+
+    gui.add(controls, 'dorsalFinSpeed', 0, 5).onChange(controls.redraw)
+    gui.add(controls, 'tailFinSpeed', 0, 5).onChange(controls.redraw)
+    gui.add(controls, 'leftFlipperVerticalSpeed', 0, 5).onChange(controls.redraw)
+    gui.add(controls, 'leftFlipperHorizontalSpeed', 0, 5).onChange(controls.redraw)
+    gui.add(controls, 'rightFlipperVerticalSpeed', 0, 5).onChange(controls.redraw)
+    gui.add(controls, 'rightFlipperHorizontalSpeed', 0, 5).onChange(controls.redraw)
+    gui.add(controls, 'spine0Speed', 0, 5).onChange(controls.redraw)
+    gui.add(controls, 'spine1Speed', 0, 5).onChange(controls.redraw)
+    gui.add(controls, 'spine2Speed', 0, 5).onChange(controls.redraw)
+}
+
 /**this function adds the objects to the scene */
 function addObjects(){
 
@@ -130,10 +153,11 @@ function addObjects(){
     const loader = new OBJLoader()
     loader.load('dolphin_color.obj',
         function(obj){
-
+            
             const dolphinGeometry = obj.children[0].geometry
             
             const dolphinSkeleton = createBones()
+            initGUI(dolphinSkeleton)
             skinMesh(dolphinGeometry, dolphinSkeleton)
             // console.log(dolphinSkeleton)
             
@@ -226,22 +250,25 @@ function createBones(){
  */
 function animateDolphin(){
 
-    if (dolphinSkinnedMesh){
+    if (dolphinSkinnedMesh && controls){
 
         // animate tail
-        dolphinSkinnedMesh.skeleton.bones[4].rotation.y = (Math.sin(Date.now() * 0.01) * 0.15)
+        dolphinSkinnedMesh.skeleton.bones[4].rotation.y = (Math.sin(Date.now() * 0.01 * controls.tailFinSpeed) * 0.15)
 
         //animate dorsal fin
-        dolphinSkinnedMesh.skeleton.bones[5].rotation.x = ((Math.sin(Date.now() * 0.01) * 0.2))
+        dolphinSkinnedMesh.skeleton.bones[5].rotation.x = ((Math.sin(Date.now() * 0.01 * controls.dorsalFinSpeed) * 0.2))
 
         //animate flippers
-        dolphinSkinnedMesh.skeleton.bones[6].rotation.x = (-Math.sin(Date.now() * 0.01) * 0.05)
-        dolphinSkinnedMesh.skeleton.bones[7].rotation.x = (Math.sin(Date.now() * 0.01) * 0.05)
+        dolphinSkinnedMesh.skeleton.bones[6].rotation.x = (-Math.sin(Date.now() * 0.01 * controls.leftFlipperVerticalSpeed) * 0.05)
+        dolphinSkinnedMesh.skeleton.bones[7].rotation.x = (Math.sin(Date.now() * 0.01 * controls.rightFlipperVerticalSpeed) * 0.05)
+        dolphinSkinnedMesh.skeleton.bones[6].rotation.z = (-Math.cos(Date.now() * 0.01 * controls.leftFlipperHorizontalSpeed) * 0.03)
+        dolphinSkinnedMesh.skeleton.bones[7].rotation.z = (Math.cos(Date.now() * 0.01 * controls.rightFlipperHorizontalSpeed) * 0.03)
 
-        dolphinSkinnedMesh.skeleton.bones[0].rotation.y = (Math.sin(Date.now() * 0.003) * 0.05)
-        dolphinSkinnedMesh.skeleton.bones[1].rotation.y = (Math.sin(Date.now() * 0.003) * 0.1)   
-        dolphinSkinnedMesh.skeleton.bones[2].rotation.y = (Math.sin(Date.now() * 0.003) * 0.1)
-        dolphinSkinnedMesh.skeleton.bones[3].rotation.y = (Math.sin(Date.now() * 0.003) * 0.1)
+        //animate body
+        dolphinSkinnedMesh.skeleton.bones[0].rotation.y = (Math.sin(Date.now() * 0.003) * 0.02)
+        dolphinSkinnedMesh.skeleton.bones[1].rotation.y = (Math.sin(Date.now() * 0.003 * controls.spine0Speed) * 0.1)   
+        dolphinSkinnedMesh.skeleton.bones[2].rotation.y = (Math.sin(Date.now() * 0.003 * controls.spine1Speed) * 0.1)
+        dolphinSkinnedMesh.skeleton.bones[3].rotation.y = (Math.sin(Date.now() * 0.003 * controls.spine2Speed) * 0.1)
     }
     
 
@@ -251,12 +278,11 @@ function animateDolphin(){
 function render(){
 
     function renderLoop(){
-
+        
         animateDolphin()
         
-        
         requestAnimationFrame(renderLoop)
-        controls.update()
+        orbitControls.update()
         renderer.render(scene, camera)
     }
     renderLoop()
