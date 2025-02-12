@@ -279,7 +279,7 @@ function render(){
 
     function renderLoop(){
         
-        animateDolphin()
+        // animateDolphin()
         
         requestAnimationFrame(renderLoop)
         orbitControls.update()
