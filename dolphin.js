@@ -41,23 +41,56 @@ function optionalInit(){
 }
 
 /**assigns skinIndices and skinWeights to each vertex of the mesh */
-function skinMesh(geometry){
+function skinMesh(geometry, skeleton){
 
     const skinIndices = []
     const skinWeights = []
 
-    let dict = new Map()
-
     const vertexColor = new THREE.Vector3()
+    const vertexPos = new THREE.Vector3()
+
+    const spineBonesPositions = [
+        new THREE.Vector3(),
+        new THREE.Vector3(),
+        new THREE.Vector3()
+    ]
+
+    skeleton.bones[1].getWorldPosition(spineBonesPositions[0])
+    skeleton.bones[2].getWorldPosition(spineBonesPositions[1])
+    skeleton.bones[3].getWorldPosition(spineBonesPositions[2])
+
+    console.log(spineBonesPositions)
+
+
     for (let i = 0; i < geometry.attributes.color.count; i++){
         vertexColor.fromBufferAttribute(geometry.attributes.color, i)
 
-        // console.log(vertexColor)
-
         //assign dark green vertices to head bone
         if (vertexColor.x == 0.009134110994637012 && vertexColor.y == 0.06480329483747482 && vertexColor.z == 0){
-            skinIndices.push(0, 0, 0, 0)
+            skinIndices.push(1, 0, 0, 0)
             skinWeights.push(1, 0, 0, 0)
+        }
+        //assign white vertices to spinal bones and weight them according to their distance
+        else if (vertexColor.x == 1 && vertexColor.y == 1 && vertexColor.z == 1){
+            vertexPos.fromBufferAttribute(geometry.attributes.position, i)
+            const distances = spineBonesPositions.map(spineBonesPosition=>spineBonesPosition.distanceTo(vertexPos))
+           
+            if ((distances[0] < distances[1]) && (distances[0] < distances[2])){
+                console.log('assigned 1')
+                skinIndices.push(1, 0, 0, 0)
+                skinWeights.push(1, 0, 0, 0)
+            }
+            else if (distances[1] < distances[2]){
+                console.log('assigned 2')
+                skinIndices.push(2, 0, 0, 0)
+                skinWeights.push(1, 0, 0, 0)
+            }
+            else{
+                console.log('assigned 3')
+                skinIndices.push(3, 0, 0, 0)
+                skinWeights.push(1, 0, 0, 0)
+            }
+
         }
         //assign light green vertices to tail fin bone
         else if (vertexColor.x == 0 && vertexColor.y == 1 && vertexColor.z == 0){
@@ -99,8 +132,9 @@ function addObjects(){
         function(obj){
 
             const dolphinGeometry = obj.children[0].geometry
-            skinMesh(dolphinGeometry)
+            
             const dolphinSkeleton = createBones()
+            skinMesh(dolphinGeometry, dolphinSkeleton)
             // console.log(dolphinSkeleton)
             
             const material = obj.children[0].material
@@ -156,27 +190,27 @@ function createBones(){
     spineBones.push(new THREE.Bone())
 
     headBone.add(spineBones[0])
-    spineBones[0].position.set(12, 0, 5)
+    spineBones[0].position.set(7, 0, 7)
     spineBones[0].add(spineBones[1])
-    spineBones[1].position.set(13, 0, 9)
+    spineBones[1].position.set(13, 0, 4)
     spineBones[1].add(spineBones[2])
-    spineBones[2].position.set(23, 0, -8)
+    spineBones[2].position.set(15, 0, -2)
 
     const tailFinBone = new THREE.Bone()
     spineBones[2].add(tailFinBone)
-    tailFinBone.position.set(7, 0, -3)
+    tailFinBone.position.set(14, 0, -3)
 
     const dorsalFinBone = new THREE.Bone()
     spineBones[1].add(dorsalFinBone)
-    dorsalFinBone.position.set(0, 0, 1)
+    dorsalFinBone.position.set(6, 0, 5)
 
     const flipperLeftBone = new THREE.Bone()
     spineBones[0].add(flipperLeftBone)
-    flipperLeftBone.position.set(2, 3, 0)
+    flipperLeftBone.position.set(7, 5, -3)
 
     const flipperRightBone = new THREE.Bone()
     spineBones[0].add(flipperRightBone)
-    flipperRightBone.position.set(2, -3, 0)
+    flipperRightBone.position.set(7, -5, -3)
 
     const dolphinBones = [
         headBone, ...spineBones, tailFinBone, dorsalFinBone, flipperLeftBone, flipperRightBone
@@ -194,15 +228,20 @@ function animateDolphin(){
 
     if (dolphinSkinnedMesh){
 
-        //animate tail
-        dolphinSkinnedMesh.skeleton.bones[3].rotateY(Math.sin(Date.now() * 0.01) * 0.01)
+        // animate tail
+        dolphinSkinnedMesh.skeleton.bones[4].rotation.y = (Math.sin(Date.now() * 0.01) * 0.15)
 
         //animate dorsal fin
-        dolphinSkinnedMesh.skeleton.bones[5].rotateX((Math.sin(Date.now() * 0.01) * 0.01))
+        dolphinSkinnedMesh.skeleton.bones[5].rotation.x = ((Math.sin(Date.now() * 0.01) * 0.2))
 
         //animate flippers
-        dolphinSkinnedMesh.skeleton.bones[6].rotateX(-Math.sin(Date.now() * 0.01) * 0.01)
-        dolphinSkinnedMesh.skeleton.bones[7].rotateX(Math.sin(Date.now() * 0.01) * 0.01)
+        dolphinSkinnedMesh.skeleton.bones[6].rotation.x = (-Math.sin(Date.now() * 0.01) * 0.05)
+        dolphinSkinnedMesh.skeleton.bones[7].rotation.x = (Math.sin(Date.now() * 0.01) * 0.05)
+
+        dolphinSkinnedMesh.skeleton.bones[0].rotation.y = (Math.sin(Date.now() * 0.003) * 0.05)
+        dolphinSkinnedMesh.skeleton.bones[1].rotation.y = (Math.sin(Date.now() * 0.003) * 0.1)   
+        dolphinSkinnedMesh.skeleton.bones[2].rotation.y = (Math.sin(Date.now() * 0.003) * 0.1)
+        dolphinSkinnedMesh.skeleton.bones[3].rotation.y = (Math.sin(Date.now() * 0.003) * 0.1)
     }
     
 
