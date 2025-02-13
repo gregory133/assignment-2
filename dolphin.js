@@ -125,10 +125,10 @@ function initGUI(){
     controls = new (function(){
         this.dorsalFin = 0
         this.tailFin = 0
-        this.leftFlipperVertical = 1
-        this.leftFlipperHorizontal = 1
-        this.rightFlipperVertical = 1
-        this.rightFlipperHorizontal = 1
+        this.leftFlipperVertical = Math.PI * 0.1
+        this.leftFlipperHorizontal = Math.PI * 0.1
+        this.rightFlipperVertical = Math.PI * 0.1
+        this.rightFlipperHorizontal = Math.PI * 0.1
         this.spine0 = Math.PI * 0.1
         this.spine1 = Math.PI * 0.15
         this.spine2 = Math.PI * 0.01
@@ -240,10 +240,14 @@ function createBones(){
     const flipperLeftBone = new THREE.Bone()
     spineBones[0].add(flipperLeftBone)
     flipperLeftBone.position.set(7, 5, -3)
+    flipperLeftBone.rotateZ(controls.leftFlipperHorizontal)
+    flipperLeftBone.rotateX(controls.leftFlipperVertical)
 
     const flipperRightBone = new THREE.Bone()
     spineBones[0].add(flipperRightBone)
     flipperRightBone.position.set(7, -5, -3)
+    flipperRightBone.rotateZ(controls.rightFlipperHorizontal)
+    flipperRightBone.rotateX(controls.rightFlipperVertical)
 
     const dolphinBones = [
         headBone, ...spineBones, tailFinBone, dorsalFinBone, flipperLeftBone, flipperRightBone
@@ -267,6 +271,10 @@ function animateDolphin(){
         dolphinSkinnedMesh.skeleton.bones[3].rotation.y = controls.spine2
         dolphinSkinnedMesh.skeleton.bones[4].rotation.y = controls.tailFin
         dolphinSkinnedMesh.skeleton.bones[5].rotation.x = controls.dorsalFin
+        dolphinSkinnedMesh.skeleton.bones[6].rotation.z = controls.leftFlipperHorizontal
+        dolphinSkinnedMesh.skeleton.bones[6].rotation.x = controls.leftFlipperVertical
+        dolphinSkinnedMesh.skeleton.bones[7].rotation.z = controls.rightFlipperHorizontal
+        dolphinSkinnedMesh.skeleton.bones[7].rotation.x = controls.rightFlipperVertical
 
         if (controls.animate){
             // animate tail
@@ -276,10 +284,10 @@ function animateDolphin(){
             dolphinSkinnedMesh.skeleton.bones[5].rotation.x += ((Math.sin(Date.now() * 0.01) * 0.2))
 
             //animate flippers
-            dolphinSkinnedMesh.skeleton.bones[6].rotation.x = (-Math.sin(Date.now() * 0.01) * 0.05)
-            dolphinSkinnedMesh.skeleton.bones[7].rotation.x = (Math.sin(Date.now() * 0.01) * 0.05)
-            dolphinSkinnedMesh.skeleton.bones[6].rotation.z = (-Math.cos(Date.now() * 0.01) * 0.03)
-            dolphinSkinnedMesh.skeleton.bones[7].rotation.z = (Math.cos(Date.now() * 0.01) * 0.03)
+            dolphinSkinnedMesh.skeleton.bones[6].rotation.x += (-Math.sin(Date.now() * 0.01) * 0.05)
+            dolphinSkinnedMesh.skeleton.bones[7].rotation.x += (Math.sin(Date.now() * 0.01) * 0.05)
+            dolphinSkinnedMesh.skeleton.bones[6].rotation.z += (-Math.cos(Date.now() * 0.01) * 0.03)
+            dolphinSkinnedMesh.skeleton.bones[7].rotation.z += (Math.cos(Date.now() * 0.01) * 0.03)
 
             //animate body
             dolphinSkinnedMesh.skeleton.bones[0].rotation.y += (Math.sin(Date.now() * 0.003) * 0.02)
