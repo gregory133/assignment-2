@@ -37,8 +37,8 @@ function init(){
 function optionalInit(){
 
     //adds axes to scene
-    // const axesHelper = new THREE.AxesHelper(50)
-    // scene.add(axesHelper)
+    const axesHelper = new THREE.AxesHelper(50)
+    scene.add(axesHelper)
  
 }
 
@@ -132,7 +132,7 @@ function initGUI(){
         this.spine0 = Math.PI * 0.1
         this.spine1 = Math.PI * 0.15
         this.spine2 = Math.PI * 0.01
-        this.animate = false
+        this.animate = true
         this.redraw = ()=>{
         }
     })()
@@ -302,12 +302,46 @@ function animateDolphin(){
 
 }
 
+function moveDolphinInSpirograph(){
+
+    if (dolphinSkinnedMesh && controls.animate){
+
+        let R, r, d, w
+        R = 50 //radius of fixed large circle
+        r = 40 //radius of moving small circle
+        d = 40 //distance from "pen" to centre of small circle
+        w = 0.001 //angular velocity of small circle
+        
+        //parametric equations for position of dolphin
+        dolphinSkinnedMesh.position.x = (R - r) * Math.cos(w * Date.now()) + d * Math.cos( ((R - r) / r) * w * Date.now())
+        dolphinSkinnedMesh.position.z = (R - r) * Math.sin(w * Date.now()) - d * Math.sin( ((R - r) / r) * w * Date.now())
+
+        // parametric equations for direction dolphin is facing
+        dolphinSkinnedMesh.rotation.z = Math.atan2(
+            Math.cos(w * Date.now() - (d / r) * Math.cos(w * Date.now() * ((R - r) / r))), 
+            -Math.sin(w * Date.now()) - (d / r) * Math.sin(w * Date.now() * ((R - r) / r))
+        )
+        // dolphinSkinnedMesh.rotation.z = Math.atan2(
+        //     (w * (R - r) * Math.cos(w * Date.now()) - w * d * Math.cos(w * Date.now() * ((R - r) / r))),
+        //     (w * (R - r) * Math.sin(w * Date.now()) + w * d * Math.sin(w * Date.now() * ((R - r) / r)))
+        // )
+         
+        
+
+    }
+    
+
+
+
+}
+
 /**render function that contains the render loop*/
 function render(){
 
     function renderLoop(){
         
         animateDolphin()
+        moveDolphinInSpirograph()
         
         requestAnimationFrame(renderLoop)
         orbitControls.update()
