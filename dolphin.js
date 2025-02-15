@@ -37,8 +37,8 @@ function init(){
 function optionalInit(){
 
     //adds axes to scene
-    const axesHelper = new THREE.AxesHelper(50)
-    scene.add(axesHelper)
+    // const axesHelper = new THREE.AxesHelper(50)
+    // scene.add(axesHelper)
  
 }
 
@@ -181,8 +181,8 @@ function addObjects(){
             dolphinSkinnedMesh.rotateZ(Math.PI)
             dolphinSkinnedMesh.rotateX(Math.PI/2)
 
-            const dolphinAxes = new THREE.AxesHelper(20)
-            dolphinSkinnedMesh.add(dolphinAxes)
+            // const dolphinAxes = new THREE.AxesHelper(20)
+            // dolphinSkinnedMesh.add(dolphinAxes)
 
             obj.rotateZ(Math.PI)
             obj.rotateX(Math.PI/2)
@@ -308,8 +308,8 @@ function moveDolphinInSpirograph(){
 
         let R, r, d, w
         R = 50 //radius of fixed large circle
-        r = 40 //radius of moving small circle
-        d = 40 //distance from "pen" to centre of small circle
+        r = 30 //radius of moving small circle
+        d = 30 //distance from "pen" to centre of small circle
         w = 0.001 //angular velocity of small circle
         
         //parametric equations for position of dolphin
@@ -317,14 +317,16 @@ function moveDolphinInSpirograph(){
         dolphinSkinnedMesh.position.z = (R - r) * Math.sin(w * Date.now()) - d * Math.sin( ((R - r) / r) * w * Date.now())
 
         // parametric equations for direction dolphin is facing
-        dolphinSkinnedMesh.rotation.z = Math.atan2(
-            Math.cos(w * Date.now() - (d / r) * Math.cos(w * Date.now() * ((R - r) / r))), 
-            -Math.sin(w * Date.now()) - (d / r) * Math.sin(w * Date.now() * ((R - r) / r))
-        )
+
         // dolphinSkinnedMesh.rotation.z = Math.atan2(
-        //     (w * (R - r) * Math.cos(w * Date.now()) - w * d * Math.cos(w * Date.now() * ((R - r) / r))),
-        //     (w * (R - r) * Math.sin(w * Date.now()) + w * d * Math.sin(w * Date.now() * ((R - r) / r)))
+        //     Math.cos(w * Date.now() - (d / r) * Math.cos(w * Date.now() * ((R - r) / r))), 
+        //     -Math.sin(w * Date.now()) - (d / r) * Math.sin(w * Date.now() * ((R - r) / r))
         // )
+
+        dolphinSkinnedMesh.rotation.z = Math.atan2(
+            (w * (R - r) * Math.cos(w * Date.now()) - w * d * Math.cos(w * Date.now() * ((R - r) / r))),
+            (w * (R - r) * Math.sin(w * Date.now()) + w * d * Math.sin(w * Date.now() * ((R - r) / r)))
+        )
          
         
 
